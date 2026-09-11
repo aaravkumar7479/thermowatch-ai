@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThermoWatch AI — Live Satellite Thermal Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#050a13;
+    --bg-1:#0a1424;
+    --bg-2:#0e1c30;
+    --line:rgba(140,170,210,0.14);
+    --line-strong:rgba(140,170,210,0.28);
+    --text-hi:#eef4fb;
+    --text-mid:#9db0c6;
+    --text-low:#5f7186;
+    --mint:#49e3b0;
+    --mint-dim:rgba(73,227,176,0.14);
+    --coral:#f2685c;
+    --amber:#f0b34c;
+    --blue:#5b9bf2;
+    --radius-s:10px;
+    --radius-m:16px;
+    --radius-l:26px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-0);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  ::selection{background:var(--mint); color:#04120d;}
+
+  h1,h2,h3,h4{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    color:var(--text-hi);
+  }
+
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  a{color:inherit; text-decoration:none;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- Starfield ---------- */
+  #stars{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .noise-veil{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(ellipse 900px 600px at 12% -10%, rgba(73,227,176,0.09), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(91,155,242,0.08), transparent 55%);
+    pointer-events:none;
+  }
+
+  /* ---------- Layout shell ---------- */
+  .wrap{
+    max-width:1220px;
+    margin:0 auto;
+    padding:0 32px;
+    position:relative;
+    z-index:2;
+  }
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    backdrop-filter:blur(14px);
+    background:rgba(5,10,19,0.72);
+    border-bottom:1px solid var(--line);
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 32px;
+    max-width:1220px;
+    margin:0 auto;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    letter-spacing:0.01em;
+  }
+
+  .brand-mark{
+    width:30px; height:30px;
+    border-radius:8px;
+    background:linear-gradient(140deg, var(--mint), var(--blue));
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .brand-mark svg{width:17px; height:17px;}
+
+  .nav-links{
+    display:flex;
+    gap:34px;
+    font-size:0.92rem;
+    color:var(--text-mid);
+  }
+  .nav-links a{transition:color 0.2s;}
+  .nav-links a:hover{color:var(--text-hi);}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:11px 20px;
+    border-radius:999px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .btn:focus-visible{outline:2px solid var(--mint); outline-offset:3px;}
+  .btn:active{transform:translateY(1px);}
+
+  .btn-primary{
+    background:var(--mint);
+    color:#052018;
+    box-shadow:0 0 0 0 rgba(73,227,176,0.5);
+  }
+  .btn-primary:hover{
+    box-shadow:0 6px 24px rgba(73,227,176,0.35);
+    transform:translateY(-1px);
+  }
+
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--line-strong);
+    color:var(--text-hi);
+  }
+  .btn-ghost:hover{border-color:var(--mint); color:var(--mint);}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:96px 0 60px;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:56px;
+    align-items:center;
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    color:var(--mint);
+    border:1px solid rgba(73,227,176,0.3);
+    background:var(--mint-dim);
+    padding:7px 14px;
+    border-radius:999px;
+    margin-bottom:26px;
+  }
+  .dot-live{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--mint);
+    box-shadow:0 0 0 0 rgba(73,227,176,0.6);
+    animation:pulse-dot 2.2s infinite;
+  }
+  @keyframes pulse-dot{
+    0%{box-shadow:0 0 0 0 rgba(73,227,176,0.55);}
+    70%{box-shadow:0 0 0 8px rgba(73,227,176,0);}
+    100%{box-shadow:0 0 0 0 rgba(73,227,176,0);}
+  }
+
+  .hero h1{
+    font-size:clamp(2.5rem, 5vw, 3.6rem);
+    line-height:1.06;
+    margin-bottom:22px;
+  }
+  .hero h1 .glow{
+    background:linear-gradient(120deg, var(--mint), #7be8c8);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .hero p.lede{
+    font-size:1.08rem;
+    color:var(--text-mid);
+    max-width:46ch;
+    margin-bottom:36px;
+  }
+
+  .hero-cta{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:48px;
+  }
+
+  .link-inline{
+    font-size:0.92rem;
+    color:var(--text-mid);
+    border-bottom:1px solid var(--line-strong);
+    padding-bottom:2px;
+    transition:color 0.2s, border-color 0.2s;
+  }
+  .link-inline:hover{color:var(--mint); border-color:var(--mint);}
+
+  .hero-stats{
+    display:flex;
+    gap:38px;
+    flex-wrap:wrap;
+  }
+  .hero-stats .stat-num{
+    font-family:'Space Grotesk';
+    font-size:1.55rem;
+    font-weight:700;
+  }
+  .hero-stats .stat-label{
+    font-size:0.78rem;
+    color:var(--text-low);
+    margin-top:2px;
+  }
+
+  /* ---------- Orbit visual (astronaut / satellite motif) ---------- */
+  .orbit-stage{
+    position:relative;
+    height:440px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .orbit-ring{
+    position:absolute;
+    border:1px dashed rgba(140,170,210,0.22);
+    border-radius:50%;
+  }
+  .ring-1{width:300px; height:300px;}
+  .ring-2{width:400px; height:400px; border-style:solid; border-color:rgba(140,170,210,0.1);}
+
+  .orbit-rotor{
+    position:absolute;
+    width:400px; height:400px;
+    animation:spin 26s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .sat-chip{
+    position:absolute;
+    top:-14px; left:50%;
+    transform:translateX(-50%);
+    width:34px; height:34px;
+    background:var(--bg-2);
+    border:1px solid var(--line-strong);
+    border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 22px rgba(73,227,176,0.25);
+  }
+  .sat-chip svg{width:18px; height:18px; color:var(--mint);}
+
+  .earth-core{
+    position:relative;
+    width:150px; height:150px;
+    border-radius:50%;
+    background:radial-gradient(circle at 32% 30%, #123a52, #061420 70%);
+    box-shadow:inset -18px -14px 40px rgba(0,0,0,0.55), 0 0 60px rgba(73,227,176,0.12);
+    display:flex; align-items:center; justify-content:center;
+    z-index:2;
+  }
+  .earth-core::before{
+    content:'';
+    position:absolute; inset:0;
+    border-radius:50%;
+    background:
+      radial-gradient(ellipse 40px 20px at 65% 70%, rgba(73,227,176,0.25), transparent 70%),
+      radial-gradient(ellipse 30px 50px at 25% 35%, rgba(91,155,242,0.2), transparent 70%);
+  }
+
+  .astro-badge{
+    position:absolute;
+    bottom:14px; right:-6px;
+    width:64px; height:64px;
+    border-radius:50%;
+    background:var(--bg-1);
+    border:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center;
+    animation:float-y 5s ease-in-out infinite;
+    box-shadow:0 12px 30px rgba(0,0,0,0.4);
+  }
+  @keyframes float-y{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+  .astro-badge svg{width:34px; height:34px;}
+
+  /* ---------- Section shell ---------- */
+  section{
+    position:relative;
+    z-index:2;
+    padding:80px 0;
+    border-top:1px solid var(--line);
+  }
+
+  .section-head{
+    max-width:640px;
+    margin-bottom:52px;
+  }
+  .section-head .kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    color:var(--mint);
+    margin-bottom:14px;
+    display:block;
+  }
+  .section-head h2{
+    font-size:clamp(1.7rem, 3vw, 2.3rem);
+    margin-bottom:14px;
+  }
+  .section-head p{
+    color:var(--text-mid);
+    font-size:1rem;
+  }
+
+  /* ---------- Dashboard mock card (from reference) ---------- */
+  .dash-card{
+    background:linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius-l);
+    padding:22px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+    position:relative;
+    overflow:hidden;
+  }
+  .dash-card::after{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 20%, rgba(73,227,176,0.06), transparent 55%);
+    pointer-events:none;
+  }
+
+  .dash-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    color:var(--text-low);
+  }
+  .dash-top .status{
+    display:flex; align-items:center; gap:7px;
+    color:var(--mint);
+  }
+  .status-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--mint);
+  }
+
+  .radar-box{
+    position:relative;
+    height:230px;
+    border-radius:var(--radius-m);
+    border:1px solid var(--line);
+    background:
+      repeating-radial-gradient(circle at 50% 50%, rgba(140,170,210,0.09) 0 1px, transparent 1px 40px),
+      linear-gradient(160deg, #0b1a2c, #071120);
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+
+  .india-shape{
+    position:absolute;
+    top:38%; left:44%;
+    width:120px; height:150px;
+    background:rgba(73,227,176,0.16);
+    clip-path:polygon(45% 0%, 65% 8%, 78% 22%, 70% 40%, 85% 48%, 75% 65%, 60% 100%, 40% 88%, 30% 60%, 15% 40%, 30% 20%);
+    filter:blur(0.3px);
+  }
+
+  .hot-node{
+    position:absolute;
+    width:16px; height:16px;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+  }
+  .hot-node::before{
+    content:'';
+    position:absolute; inset:-8px;
+    border-radius:50%;
+    border:1px solid currentColor;
+    opacity:0.4;
+    animation:ripple 2.6s ease-out infinite;
+  }
+  @keyframes ripple{
+    0%{transform:scale(0.6); opacity:0.5;}
+    100%{transform:scale(2.1); opacity:0;}
+  }
+  .n-red{ background:var(--coral); color:var(--coral); }
+  .n-amber{ background:var(--amber); color:var(--amber); }
+  .n-blue{ background:var(--blue); color:var(--blue); }
+  .n-mint{ background:var(--mint); color:var(--mint); }
+
+  .radar-caption{
+    position:absolute;
+    bottom:12px; left:14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.65rem;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+  }
+
+  .risk-flag{
+    position:absolute;
+    top:14px; right:14px;
+    background:rgba(6,12,22,0.85);
+    border:1px solid var(--line-strong);
+    border-radius:12px;
+    padding:10px 16px;
+    text-align:left;
+    backdrop-filter:blur(6px);
+  }
+  .risk-flag .rf-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.6rem;
+    letter-spacing:0.1em;
+    color:var(--text-low);
+    margin-bottom:4px;
+  }
+  .risk-flag .rf-num{
+    font-family:'Space Grotesk';
+    font-size:1.5rem;
+    font-weight:700;
+    color:var(--coral);
+    line-height:1;
+  }
+  .risk-flag .rf-delta{
+    font-size:0.7rem;
+    color:var(--mint);
+    margin-top:3px;
+  }
+
+  .dash-bottom{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:14px;
+  }
+
+  .mini-panel{
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:14px 16px;
+    background:rgba(255,255,255,0.015);
+  }
+  .mini-panel .mp-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    color:var(--text-low);
+    margin-bottom:12px;
+  }
+
+  .bars{
+    display:flex;
+    align-items:flex-end;
+    gap:5px;
+    height:42px;
+  }
+  .bars i{
+    flex:1;
+    background:linear-gradient(180deg, var(--mint), rgba(73,227,176,0.25));
+    border-radius:3px 3px 0 0;
+  }
+
+  .swatches{
+    display:flex;
+    gap:9px;
+  }
+  .swatches span{
+    width:16px; height:16px;
+    border-radius:50%;
+    display:inline-block;
+  }
+
+  /* ---------- Feature grid ---------- */
+  .feature-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    overflow:hidden;
+  }
+  .feature{
+    background:var(--bg-0);
+    padding:32px 28px;
+  }
+  .feature .f-icon{
+    width:38px; height:38px;
+    border-radius:10px;
+    background:var(--mint-dim);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px;
+  }
+  .feature .f-icon svg{width:20px; height:20px; color:var(--mint);}
+  .feature h3{font-size:1.05rem; margin-bottom:10px;}
+  .feature p{font-size:0.92rem; color:var(--text-mid);}
+
+  /* ---------- Process / how it works ---------- */
+  .process{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:24px;
+  }
+  .proc-step{
+    position:relative;
+    padding-top:26px;
+    border-top:2px solid var(--line-strong);
+  }
+  .proc-step .p-index{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--mint);
+    margin-bottom:10px;
+  }
+  .proc-step h3{font-size:1rem; margin-bottom:8px;}
+  .proc-step p{font-size:0.88rem; color:var(--text-mid);}
+
+  /* ---------- Orbit belt of industries (marquee) ---------- */
+  .belt{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:22px 0;
+    overflow:hidden;
+    white-space:nowrap;
+    position:relative;
+    z-index:2;
+    background:var(--bg-1);
+  }
+  .belt-track{
+    display:inline-flex;
+    gap:56px;
+    animation:scroll-left 32s linear infinite;
+  }
+  .belt span{
+    font-family:'Space Grotesk';
+    font-size:0.95rem;
+    color:var(--text-low);
+    letter-spacing:0.02em;
+  }
+  .belt span b{color:var(--text-mid); font-weight:600;}
+  @keyframes scroll-left{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+
+  /* ---------- CTA band ---------- */
+  .cta-band{
+    border-radius:var(--radius-l);
+    background:linear-gradient(135deg, #0c2a24, #081524);
+    border:1px solid rgba(73,227,176,0.25);
+    padding:60px 56px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cta-band::before{
+    content:'';
+    position:absolute;
+    width:280px; height:280px;
+    border-radius:50%;
+    border:1px dashed rgba(73,227,176,0.2);
+    top:-120px; right:-60px;
+  }
+  .cta-band h2{font-size:1.9rem; max-width:16ch; margin-bottom:14px;}
+  .cta-band p{color:var(--text-mid); max-width:40ch;}
+  .cta-side{flex-shrink:0;}
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:48px 0 34px;
+    position:relative; z-index:2;
+  }
+  .foot-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:40px;
+    flex-wrap:wrap;
+    margin-bottom:36px;
+  }
+  .foot-cols{
+    display:flex;
+    gap:64px;
+    flex-wrap:wrap;
+  }
+  .foot-col h4{
+    font-size:0.78rem;
+    color:var(--text-low);
+    letter-spacing:0.06em;
+    margin-bottom:14px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:500;
+  }
+  .foot-col a{
+    display:block;
+    font-size:0.9rem;
+    color:var(--text-mid);
+    margin-bottom:10px;
+    transition:color 0.2s;
+  }
+  .foot-col a:hover{color:var(--mint);}
+  .foot-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-size:0.82rem;
+    color:var(--text-low);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr; padding-top:64px;}
+    .orbit-stage{height:340px; order:-1;}
+    .ring-2{width:320px; height:320px;}
+    .ring-1{width:240px; height:240px;}
+    .orbit-rotor{width:320px; height:320px;}
+    .feature-grid{grid-template-columns:1fr;}
+    .process{grid-template-columns:1fr 1fr;}
+    .dash-bottom{grid-template-columns:1fr;}
+    .cta-band{flex-direction:column; align-items:flex-start; padding:44px 32px;}
+  }
+
+  @media (max-width:640px){
+    .wrap{padding:0 20px;}
+    nav{padding:16px 20px;}
+    .nav-links{display:none;}
+    .hero{padding:44px 0 40px; gap:36px;}
+    .hero-stats{gap:26px;}
+    section{padding:56px 0;}
+    .process{grid-template-columns:1fr;}
+    .orbit-stage{height:260px;}
+    .ring-2{width:220px; height:220px;}
+    .ring-1{width:160px; height:160px;}
+    .orbit-rotor{width:220px; height:220px;}
+    .earth-core{width:100px; height:100px;}
+    .astro-badge{width:52px; height:52px;}
+    .btn{padding:10px 16px; font-size:0.85rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div class="noise-veil"></div>
+
+<header>
+  <nav>
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L4 7V12C4 16.5 7.5 20.5 12 22C16.5 20.5 20 16.5 20 12V7L12 2Z" stroke="#04140f" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="12" cy="11" r="2.4" stroke="#04140f" stroke-width="1.6"/>
+        </svg>
+      </span>
+      THERMOWATCH AI
+    </div>
+    <div class="nav-links">
+      <a href="#capabilities">Capabilities</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#how">How it works</a>
+      <!-- <a href="#contact">Contact</a> -->
+    </div>
+    <a href="./login.html" class="btn btn-primary">Access Dashboard</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" style="border-top:none;">
+    <div>
+      <span class="eyebrow"><span class="dot-live"></span> Live satellite intelligence</span>
+      <h1>Detect thermal<br>threats <span class="glow">before they escalate.</span></h1>
+      <p class="lede">Satellite-powered AI monitoring for industrial and environmental thermal events, watching every hotspot on Earth so your team doesn't have to.</p>
+      <div class="hero-cta">
+        <a href="./login.html" class="btn btn-primary">Access Dashboard</a>
+        <a href="#how" class="link-inline">See how detection works</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="stat-num">40,000+</div>
+          <div class="stat-label">sq. km scanned daily</div>
+        </div>
+        <div>
+          <div class="stat-num">6 min</div>
+          <div class="stat-label">average alert latency</div>
+        </div>
+        <div>
+          <div class="stat-num">99.2%</div>
+          <div class="stat-label">detection accuracy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="orbit-stage">
+      <div class="orbit-ring ring-2"></div>
+      <div class="orbit-ring ring-1"></div>
+      <div class="orbit-rotor">
+        <div class="sat-chip">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 3L3 9L6 12L12 6L9 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M12 6L18 12L15 15L9 9L12 6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M6 12L4 18L10 16" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M14 18L15 21" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M18 14L21 15" stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="earth-core"></div>
+      <div class="astro-badge">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="26" r="14" fill="#0e1c30" stroke="#49e3b0" stroke-width="1.6"/>
+          <circle cx="32" cy="26" r="9" fill="#071120"/>
+          <path d="M32 15c-2 3-2 8 0 11" stroke="#49e3b0" stroke-width="1" opacity="0.6"/>
+          <path d="M20 34c-3 3-3 9 0 13h24c3-4 3-10 0-13" stroke="#49e3b0" stroke-width="1.6" fill="#0e1c30"/>
+          <rect x="14" y="30" width="6" height="10" rx="2" fill="#0e1c30" stroke="#49e3b0" stroke-width="1.4"/>
+          <rect x="44" y="30" width="6" height="10" rx="2" fill="#0e1c30" stroke="#49e3b0" stroke-width="1.4"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- moving belt -->
+<div class="belt">
+  <div class="belt-track">
+    <span><b>Oil &amp; gas</b> flare monitoring</span>
+    <span><b>Power grids</b> transformer heat</span>
+    <span><b>Wildfire</b> early detection</span>
+    <span><b>Steel &amp; cement</b> plant safety</span>
+    <span><b>Mining</b> stockpile combustion</span>
+    <span><b>Agriculture</b> crop burning</span>
+    <span><b>Oil &amp; gas</b> flare monitoring</span>
+    <span><b>Power grids</b> transformer heat</span>
+    <span><b>Wildfire</b> early detection</span>
+    <span><b>Steel &amp; cement</b> plant safety</span>
+    <span><b>Mining</b> stockpile combustion</span>
+    <span><b>Agriculture</b> crop burning</span>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div class="section-head">
+      <!-- <span class="kicker">// live feed</span> -->
+      <h2>Your ground station, in one screen.</h2>
+      <p>Every thermal anomaly is triangulated, classified and ranked by risk the moment a satellite pass picks it up.</p>
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-top">
+        <span>THERMAL INTELLIGENCE</span>
+        <span class="status"><span class="status-dot"></span> SYSTEM ONLINE</span>
+      </div>
+
+      <div class="radar-box">
+        <div class="india-shape"></div>
+        <div class="hot-node n-red" style="top:34%; left:52%;"></div>
+        <div class="hot-node n-red" style="top:44%; left:60%;"></div>
+        <div class="hot-node n-amber" style="top:52%; left:47%;"></div>
+        <div class="hot-node n-blue" style="top:58%; left:42%;"></div>
+        <div class="hot-node n-mint" style="top:62%; left:57%;"></div>
+        <div class="radar-caption">INDIA &nbsp;·&nbsp; LIVE SATELLITE VIEW</div>
+        <div class="risk-flag">
+          <div class="rf-label">HIGH RISK EVENTS</div>
+          <div class="rf-num">24</div>
+          <div class="rf-delta">↑ 16.4%</div>
+        </div>
+      </div>
+
+      <div class="dash-bottom">
+        <div class="mini-panel">
+          <div class="mp-label">HOTSPOT ACTIVITY</div>
+          <div class="bars">
+            <i style="height:22%"></i>
+            <i style="height:34%"></i>
+            <i style="height:30%"></i>
+            <i style="height:50%"></i>
+            <i style="height:62%"></i>
+            <i style="height:78%"></i>
+            <i style="height:96%"></i>
+          </div>
+        </div>
+        <div class="mini-panel">
+          <div class="mp-label">CLASSIFICATION</div>
+          <div class="swatches">
+            <span style="background:var(--coral)"></span>
+            <span style="background:var(--amber)"></span>
+            <span style="background:var(--blue)"></span>
+            <span style="background:var(--mint)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="capabilities">
+    <div class="section-head">
+      <!-- <span class="kicker">// capabilities</span> -->
+      <h2>Built for the moment heat becomes risk.</h2>
+      <p>ThermoWatch AI fuses infrared satellite passes with machine learning trained on years of industrial and wildfire incidents.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 12L10 6L14 10L20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 4H20V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Orbital coverage</h3>
+        <p>A rotating constellation revisits every registered site multiple times a day, day or night, through cloud and smoke.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Minutes, not hours</h3>
+        <p>Anomalies are scored and pushed to your team in under six minutes of the pass, before a hotspot becomes an incident.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Risk classification</h3>
+        <p>Every event is ranked and color coded by severity, so your team can triage in seconds instead of reading raw imagery.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 17L9 11L13 15L21 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Trend intelligence</h3>
+        <p>Historical thermal signatures reveal whether a site is stable, escalating, or repeating a known failure pattern.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 12H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Custom geofences</h3>
+        <p>Draw a boundary around any facility, reserve or corridor and get alerts scoped only to what your team owns.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3V6M12 18V21M3 12H6M18 12H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/></svg>
+        </div>
+        <h3>API and integrations</h3>
+        <p>Stream alerts straight into your SCADA, GIS or incident management stack with a documented REST feed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="section-head">
+      <!-- <span class="kicker">// how it works</span> -->
+      <h2>From orbit to alert in four steps.</h2>
+      <p>The same pipeline runs on every pass, over every site you monitor.</p>
+    </div>
+
+    <div class="process">
+      <div class="proc-step">
+        <div class="p-index">01</div>
+        <h3>Capture</h3>
+        <p>Infrared sensors sweep the registered area on every satellite pass, day and night.</p>
+      </div>
+      <div class="proc-step">
+        <div class="p-index">02</div>
+        <h3>Detect</h3>
+        <p>The model isolates thermal anomalies against the site's normal heat baseline.</p>
+      </div>
+      <div class="proc-step">
+        <div class="p-index">03</div>
+        <h3>Classify</h3>
+        <p>Each anomaly is scored for severity and matched against known incident patterns.</p>
+      </div>
+      <div class="proc-step">
+        <div class="p-index">04</div>
+        <h3>Alert</h3>
+        <p>High risk events reach your dashboard and integrations within minutes of capture.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <!-- <section id="contact" style="border-bottom:1px solid var(--line);">
+    <div class="cta-band">
+      <div>
+        <h2>Put a satellite over every site you manage.</h2>
+        <p>Start watching thermal risk from orbit today. No hardware to install, no crew on the roof.</p>
+      </div>
+      <div class="cta-side">
+        <a href="#dashboard" class="btn btn-primary">Access Dashboard</a>
+      </div>
+    </div>
+  </section> -->
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L4 7V12C4 16.5 7.5 20.5 12 22C16.5 20.5 20 16.5 20 12V7L12 2Z" stroke="#04140f" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="12" cy="11" r="2.4" stroke="#04140f" stroke-width="1.6"/>
+          </svg>
+        </span>
+        THERMOWATCH AI
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>PRODUCT</h4>
+          <a href="#capabilities">Capabilities</a>
+          <a href="#dashboard">Dashboard</a>
+          <a href="#how">How it works</a>
+        </div>
+        <div class="foot-col">
+          <h4>COMPANY</h4>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div class="foot-col">
+          <h4>RESOURCES</h4>
+          <a href="#">Documentation</a>
+          <a href="#">API reference</a>
+          <a href="#">Status</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 ThermoWatch AI. All rights reserved.</span>
+      <span class="mono">GROUND STATION: ONLINE</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Starfield canvas
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = document.body.scrollHeight;
+    buildStars();
+  }
+
+  function buildStars(){
+    const count = Math.floor((canvas.width * canvas.height) / 9000);
+    stars = Array.from({length: count}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.2 + 0.2,
+      base: Math.random() * 0.5 + 0.25,
+      speed: Math.random() * 0.02 + 0.005,
+      phase: Math.random() * Math.PI * 2
+    }));
+  }
+
+  let t = 0;
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for(const s of stars){
+      const twinkle = s.base + Math.sin(t * s.speed * 40 + s.phase) * 0.25;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(230,240,250,' + Math.max(0, twinkle) + ')';
+      ctx.fill();
+    }
+    t += 1;
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+</script>
+
+</body>
+</html>
