@@ -133,6 +133,43 @@ nav a:hover {
   color: #fff;
   font-weight: 800;
 }
+.profile-wrap {
+  position: relative;
+  display: inline-flex;
+  outline: none;
+}
+.profile-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 1100;
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.profile-popover strong {
+  font-size: 12px;
+}
+.profile-popover small {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.profile-wrap:hover .profile-popover,
+.profile-wrap:focus-visible .profile-popover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 .logout {
   font-size: 11px;
 }

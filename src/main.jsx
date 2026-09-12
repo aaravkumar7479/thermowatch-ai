@@ -96,7 +96,7 @@ function Login() {
       return setError("Please complete every required field.");
     if (form.captcha.trim().toUpperCase() !== captcha.answer)
       return setError("Captcha answer is incorrect. Please try again.");
-    login({ name: form.name, org: form.org });
+    login({ name: form.name, email: form.email, org: form.org });
     nav("/dashboard");
   };
   return (
@@ -203,7 +203,7 @@ function Layout({ children }) {
           ◉ THERMOWATCH <b>AI</b>
         </NavLink>
         <nav>
-          <NavLink to="/dashboard">Dashboard</NavLink>
+          {/* <NavLink to="/dashboard">Dashboard</NavLink> */}
           <NavLink to="/top-hotspots">Top 20 Hotspots</NavLink>
           <NavLink to="/guidelines">Guidelines</NavLink>
           <NavLink to="/about">About</NavLink>
@@ -219,7 +219,15 @@ function Layout({ children }) {
           >
             {light ? "☾" : "☀"}
           </button>
-          <span className="avatar">{user.name[0]}</span>
+          <span className="profile-wrap" tabIndex={0}>
+            <span className="avatar" aria-label="Open profile details">
+              {user.name[0]}
+            </span>
+            <span className="profile-popover" role="status">
+              <strong>{user.name}</strong>
+              <small>{user.email || "Email unavailable"}</small>
+            </span>
+          </span>
           <button className="logout" onClick={logout}>
             Logout
           </button>
@@ -295,6 +303,7 @@ function MapView({ hotspots, selected, onSelect }) {
 function Dashboard() {
   const loc = useLocation(),
     nav = useNavigate();
+  const mapSectionRef = useRef(null);
   const [hotspots, setHotspots] = useState([]),
     [loading, setLoading] = useState(true),
     [mode, setMode] = useState("Demo Mode"),
@@ -338,7 +347,10 @@ function Dashboard() {
     Agriculture: filtered.filter((x) => x.category === "Agriculture").length,
     high: filtered.filter((x) => x.risk >= 0.7).length,
   };
-  const choose = (h) => setSelected(h);
+  const choose = (h) => {
+    setSelected(h);
+    mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const categories = Object.keys(colors).map((name) => ({
     name,
     value: stats[name],
@@ -388,7 +400,7 @@ function Dashboard() {
             </article>
           ))}
         </section>
-        <section className="map-section panel">
+        <section ref={mapSectionRef} className="map-section panel">
           <div className="section-title">
             <div>
               <p className="eyebrow">SPATIAL VIEW</p>
